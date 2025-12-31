@@ -1,0 +1,43 @@
+{
+  "1": {
+    "inputs": {
+      "url": "https://example.com/character.jpg"
+    },
+    "class_type": "LoadImageFromUrl",
+    "_meta": {
+      "title": "Character Image"
+    }
+  },
+  "2": {
+    "inputs": {
+      "prompt": "Hello everyone, this is a test.",
+      "duration": 5.0
+    },
+    "class_type": "AudioGeneration",
+    "_meta": {
+      "title": "Generate Audio"
+    }
+  },
+  "3": {
+    "inputs": {
+      "source_image": ["1", 0],
+      "driving_audio": ["2", 0],
+      "expression_mode": "smile"
+    },
+    "class_type": "LivePortraitNode",
+    "_meta": {
+      "title": "LipSync Animation"
+    }
+  },
+  "20": {
+    "inputs": {
+      "images": ["3", 0],
+      "fps": 30.0,
+      "filename_prefix": "lipsync_scene"
+    },
+    "class_type": "SaveVideoToUpload",
+    "_meta": {
+      "title": "Save Video"
+    }
+  }
+}

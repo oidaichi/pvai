@@ -7,9 +7,14 @@ __pycache__/
 /temp/
 /custom_nodes/
 !custom_nodes/example_node.py.example
+!custom_nodes/pvai_nodes/
+!custom_nodes/LongCat_Wrapper/
+!custom_nodes/NanoBananaPro/
+!custom_nodes/LivePortrait_Wrapper/
 extra_model_paths.yaml
 /.vs
 .vscode/
+.trae/
 .idea/
 venv/
 .venv/

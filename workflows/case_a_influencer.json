@@ -1,0 +1,35 @@
+{
+  "1": {
+    "inputs": {
+      "prompt": "An influencer holding a product",
+      "seed": 12345,
+      "steps": 25,
+      "ip_adapter_image": ["10", 0],
+      "ip_adapter_weight": 0.8
+    },
+    "class_type": "NanoBananaProT2I",
+    "_meta": {
+      "title": "T2I Generation"
+    }
+  },
+  "10": {
+    "inputs": {
+      "url": "https://example.com/product.jpg"
+    },
+    "class_type": "LoadImageFromUrl",
+    "_meta": {
+      "title": "Product Image"
+    }
+  },
+  "20": {
+    "inputs": {
+      "images": ["1", 0],
+      "fps": 30.0,
+      "filename_prefix": "influencer_scene"
+    },
+    "class_type": "SaveVideoToUpload",
+    "_meta": {
+      "title": "Save Video"
+    }
+  }
+}

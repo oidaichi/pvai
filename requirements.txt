@@ -27,3 +27,9 @@ kornia>=0.7.1
 spandrel
 pydantic~=2.0
 pydantic-settings~=2.0
+
+# PVAI Additional Dependencies
+modal
+supabase
+ffmpeg-python
+requests
