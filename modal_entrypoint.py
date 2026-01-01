@@ -147,14 +147,38 @@ class PVAI:
             self.initialize()
             
         mode = params.get("mode")
-        # Use prompt as-is (already enhanced if user requested)
-        final_prompt = params.get("payload", {}).get("prompt", "")
+        payload = params.get("payload", {})
         
-        print(f"Generating video with prompt: {final_prompt}")
+        # Extract parameters
+        final_prompt = payload.get("prompt", "")
+        aspect_ratio = payload.get("aspect_ratio", "16:9")
+        resolution = payload.get("resolution", "720p")
+        duration = payload.get("duration", 4)
+        seed_fixed = payload.get("seed_fixed", False)
+        image_data = payload.get("image_data") # Base64 string
+        image_usage = payload.get("image_usage")
+        
+        print(f"Generating video...")
+        print(f"  Mode: {mode}")
+        print(f"  Prompt: {final_prompt}")
+        print(f"  Aspect Ratio: {aspect_ratio}")
+        print(f"  Resolution: {resolution}")
+        print(f"  Duration: {duration}s")
+        print(f"  Seed Fixed: {seed_fixed}")
+        if image_data:
+            print(f"  Image Data Received: Yes (Length: {len(image_data)})")
+            print(f"  Image Usage: {image_usage}")
+        else:
+            print(f"  Image Data Received: No")
         
         # 2. Run Inference (LongCat-Video)
         # Assuming run_text_to_video logic here
-        # output_path = self.pipeline(final_prompt, num_frames=... )
+        # output_path = self.pipeline(
+        #     final_prompt, 
+        #     num_frames=..., 
+        #     height=..., width=..., 
+        #     seed=12345 if seed_fixed else None
+        # )
         
         # Mocking output for now since we can't run actual heavy inference in this environment
         # In production:

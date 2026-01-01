@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PVAI Studio - LongCat Video Generator</title>
+    <title>PVAI Studio - Commercial Video Generation</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -35,6 +36,10 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         *:focus-visible { outline: 2px solid #4F46E5; outline-offset: 2px; }
+        
+        /* Toggle Switch */
+        input:checked ~ .toggle-bg { background-color: #4F46E5; }
+        input:checked ~ .dot { transform: translateX(100%); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-gray-50">
@@ -51,8 +56,20 @@
                     </div>
                     <div>
                         <h1 class="text-xl font-bold tracking-tight text-gray-900">PVAI Studio</h1>
-                        <p class="text-xs text-gray-500">LongCat Video Generator</p>
+                        <p class="text-xs text-gray-500">Commercial Video Generation Platform</p>
                     </div>
+                </div>
+                
+                <!-- Mode Tabs -->
+                <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                    <button id="tab-normal" class="px-3 py-1.5 text-xs font-bold rounded-md shadow-sm bg-white text-gray-900 focus:outline-none transition-all" onclick="switchTab('normal')">通常作成</button>
+                    <button id="tab-bulk" class="px-3 py-1.5 text-xs font-medium rounded-md text-gray-500 hover:text-gray-900 focus:outline-none transition-all" onclick="switchTab('bulk')">一括作成</button>
+                </div>
+
+                <div class="flex items-center space-x-2 hidden md:flex">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        System Ready
+                    </span>
                 </div>
             </div>
         </div>
@@ -62,84 +79,248 @@
     <main class="flex-grow py-10">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             
-            <!-- 1. Prompt Input (Primary Interaction) -->
-            <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">1. どのような動画を作りますか？</h2>
-                <textarea id="prompt" rows="4" 
-                    class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base p-4 border transition-all resize-none" 
-                    placeholder="例: 夕暮れのビーチで楽しそうに踊る女性、シネマティックな照明、4k品質"></textarea>
-                <div class="mt-3 flex justify-between items-center">
-                    <p class="text-sm text-gray-500">
-                        動画の内容を具体的に記述してください。
-                    </p>
-                    <button id="btn-enhance" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-primary bg-primary/10 hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        AIで具体化する
-                    </button>
+            <!-- Normal Mode Container -->
+            <div id="normal-mode-container">
+                <!-- Step 1: Materials & Strategy -->
+                <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center mb-6">
+                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold mr-3">1</div>
+                    <h2 class="text-lg font-semibold text-gray-900">素材と制作方針</h2>
+                </div>
+
+                <!-- Image Upload & Usage -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <!-- Upload Area -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">元画像・参照画像 (オプション)</label>
+                        <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:bg-gray-50 transition-colors cursor-pointer relative h-48 items-center" id="drop-zone">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600 justify-center">
+                                    <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primaryHover focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary">
+                                        <span>画像をアップロード</span>
+                                        <input id="file-upload" name="file-upload" type="file" class="sr-only" accept="image/*">
+                                    </label>
+                                </div>
+                                <p class="text-xs text-gray-500">ドラッグ＆ドロップ可 (Max 10MB)</p>
+                            </div>
+                            <!-- Preview Image Overlay -->
+                            <img id="image-preview" class="absolute inset-0 w-full h-full object-contain bg-gray-100 rounded-xl hidden p-2" />
+                            <button id="remove-image" class="absolute top-2 right-2 bg-red-100 text-red-600 rounded-full p-1 hover:bg-red-200 hidden z-10">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Usage Settings -->
+                    <div id="image-usage-area" class="transition-opacity duration-200">
+                        <p class="block text-sm font-medium text-gray-700 mb-3">この画像をどのように使用しますか？</p>
+                        
+                        <div class="space-y-3">
+                            <label class="flex items-start cursor-pointer group p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors bg-white">
+                                <input type="radio" name="image-usage" value="character" class="mt-0.5 h-4 w-4 text-primary border-gray-300 focus:ring-primary" checked>
+                                <div class="ml-3">
+                                    <span class="block text-sm font-medium text-gray-900">キャラクター参照</span>
+                                    <span class="block text-xs text-gray-500 mt-1">人物やキャラクターの顔・服装を維持して生成します。</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start cursor-pointer group p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors bg-white">
+                                <input type="radio" name="image-usage" value="start_frame" class="mt-0.5 h-4 w-4 text-primary border-gray-300 focus:ring-primary">
+                                <div class="ml-3">
+                                    <span class="block text-sm font-medium text-gray-900">開始フレームとして使用</span>
+                                    <span class="block text-xs text-gray-500 mt-1">この画像を動画の「最初のコマ」として使い、動き出します。</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start cursor-pointer group p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors bg-white">
+                                <input type="radio" name="image-usage" value="end_frame" class="mt-0.5 h-4 w-4 text-primary border-gray-300 focus:ring-primary">
+                                <div class="ml-3">
+                                    <span class="block text-sm font-medium text-gray-900">終了フレームとして使用</span>
+                                    <span class="block text-xs text-gray-500 mt-1">この画像を動画の「最後のコマ」として使い、変化します。</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-100 my-6"></div>
+
+                <!-- Mode Selection -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-700 mb-4">制作モードを選択</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <button class="mode-btn group relative flex flex-col items-center p-4 border-2 rounded-xl transition-all duration-200 hover:border-primary/50 focus:outline-none bg-white hover:bg-gray-50" 
+                                data-mode="influencer" onclick="selectMode('influencer')">
+                            <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            <span class="font-semibold text-gray-900">インフルエンサー</span>
+                            <div class="check-icon absolute top-3 right-3 text-primary hidden">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                            </div>
+                        </button>
+
+                        <button class="mode-btn group relative flex flex-col items-center p-4 border-2 rounded-xl transition-all duration-200 hover:border-primary/50 focus:outline-none bg-white hover:bg-gray-50" 
+                                data-mode="lipsync" onclick="selectMode('lipsync')">
+                            <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                </svg>
+                            </div>
+                            <span class="font-semibold text-gray-900">リップシンク</span>
+                            <div class="check-icon absolute top-3 right-3 text-primary hidden">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                            </div>
+                        </button>
+
+                        <button class="mode-btn group relative flex flex-col items-center p-4 border-2 rounded-xl transition-all duration-200 hover:border-primary/50 focus:outline-none bg-white hover:bg-gray-50" 
+                                data-mode="pose" onclick="selectMode('pose')">
+                            <div class="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                </svg>
+                            </div>
+                            <span class="font-semibold text-gray-900">ポーズ制御</span>
+                            <div class="check-icon absolute top-3 right-3 text-primary hidden">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Mode Description Area -->
+                    <div id="mode-description" class="hidden bg-gray-50 rounded-xl p-4 border border-gray-100 text-sm leading-relaxed text-gray-600 transition-all">
+                        <p id="mode-desc-text">モードを選択すると、ここに詳細説明が表示されます。</p>
+                    </div>
                 </div>
             </section>
 
-            <!-- 2. Mode Selection & Generate -->
+            <!-- Step 2: Settings & Scenario -->
             <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">2. モードを選択して生成</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <button class="mode-btn group relative flex flex-col items-center p-4 border-2 rounded-xl transition-all duration-200 hover:border-primary/50 focus:outline-none" 
-                            data-mode="influencer" onclick="selectMode('influencer')">
-                        <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                        </div>
-                        <span class="font-semibold text-gray-900">インフルエンサー</span>
-                        <span class="text-xs text-gray-500 mt-1">人物生成と商品紹介</span>
-                        <div class="check-icon absolute top-3 right-3 text-primary hidden">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                        </div>
-                    </button>
-
-                    <button class="mode-btn group relative flex flex-col items-center p-4 border-2 rounded-xl transition-all duration-200 hover:border-primary/50 focus:outline-none" 
-                            data-mode="lipsync" onclick="selectMode('lipsync')">
-                        <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                            </svg>
-                        </div>
-                        <span class="font-semibold text-gray-900">リップシンク</span>
-                        <span class="text-xs text-gray-500 mt-1">音声に合わせて口パク</span>
-                        <div class="check-icon absolute top-3 right-3 text-primary hidden">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                        </div>
-                    </button>
-
-                    <button class="mode-btn group relative flex flex-col items-center p-4 border-2 rounded-xl transition-all duration-200 hover:border-primary/50 focus:outline-none" 
-                            data-mode="pose" onclick="selectMode('pose')">
-                        <div class="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                            </svg>
-                        </div>
-                        <span class="font-semibold text-gray-900">ポーズ制御</span>
-                        <span class="text-xs text-gray-500 mt-1">動きを指定して生成</span>
-                        <div class="check-icon absolute top-3 right-3 text-primary hidden">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                        </div>
-                    </button>
+                <div class="flex items-center mb-6">
+                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold mr-3">2</div>
+                    <h2 class="text-lg font-semibold text-gray-900">詳細設定とシナリオ</h2>
                 </div>
 
-                <button id="btn-generate" class="w-full group relative flex justify-center items-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-base font-bold text-white bg-primary hover:bg-primaryHover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5">
+                <!-- Output Settings -->
+                <div class="flex flex-wrap items-center gap-6 mb-8 text-sm p-4 bg-gray-50 rounded-xl border border-gray-100">
+                    <!-- Aspect Ratio -->
+                    <div class="flex items-center space-x-3">
+                        <span class="font-medium text-gray-700">アスペクト比</span>
+                        <div class="relative inline-block text-left" id="aspect-dropdown">
+                            <button type="button" class="inline-flex justify-center w-full rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors" id="aspect-menu-btn" aria-expanded="false" aria-haspopup="true">
+                                <span class="flex items-center" id="aspect-selected">
+                                    <span class="w-4 h-3 border-2 border-gray-600 rounded-sm mr-2 aspect-icon aspect-16-9"></span>
+                                    16:9
+                                </span>
+                                <svg class="-mr-1 ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            
+                            <div class="origin-top-left absolute left-0 mt-2 w-40 rounded-lg shadow-xl bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden z-10" role="menu" aria-orientation="vertical" aria-labelledby="aspect-menu-btn" id="aspect-menu">
+                                <div class="py-1" role="none">
+                                    <!-- Options -->
+                                    <button class="aspect-option w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center bg-gray-50 font-medium" role="menuitem" data-val="16:9">
+                                        <span class="w-4 h-2.5 border-2 border-gray-500 rounded-sm mr-2"></span> 16:9
+                                    </button>
+                                    <button class="aspect-option w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" role="menuitem" data-val="21:9">
+                                        <span class="w-5 h-2 border-2 border-gray-500 rounded-sm mr-2"></span> 21:9
+                                    </button>
+                                    <button class="aspect-option w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" role="menuitem" data-val="4:3">
+                                        <span class="w-3.5 h-3 border-2 border-gray-500 rounded-sm mr-2"></span> 4:3
+                                    </button>
+                                    <button class="aspect-option w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" role="menuitem" data-val="1:1">
+                                        <span class="w-3 h-3 border-2 border-gray-500 rounded-sm mr-2"></span> 1:1
+                                    </button>
+                                    <button class="aspect-option w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" role="menuitem" data-val="3:4">
+                                        <span class="w-3 h-3.5 border-2 border-gray-500 rounded-sm mr-2"></span> 3:4
+                                    </button>
+                                    <button class="aspect-option w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" role="menuitem" data-val="9:16">
+                                        <span class="w-2.5 h-4 border-2 border-gray-500 rounded-sm mr-2"></span> 9:16
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resolution -->
+                    <div class="flex items-center space-x-3">
+                         <span class="font-medium text-gray-700">解像度</span>
+                         <div class="bg-white p-1 rounded-lg border border-gray-200 inline-flex shadow-sm">
+                             <button type="button" class="res-btn px-4 py-1.5 text-xs font-bold rounded-md shadow-sm bg-gray-100 text-gray-900 focus:outline-none transition-all" data-val="720p">720p</button>
+                             <button type="button" class="res-btn px-4 py-1.5 text-xs font-medium rounded-md text-gray-500 hover:text-gray-900 focus:outline-none transition-all" data-val="1080p">1080p</button>
+                         </div>
+                    </div>
+
+                    <!-- Duration -->
+                    <div class="flex items-center space-x-3">
+                         <span class="font-medium text-gray-700">動画時間</span>
+                         <div class="bg-white p-1 rounded-lg border border-gray-200 inline-flex shadow-sm">
+                             <button type="button" class="dur-btn px-3 py-1.5 text-xs font-medium rounded-md text-gray-500 hover:text-gray-900 focus:outline-none transition-all" data-val="2">2秒</button>
+                             <button type="button" class="dur-btn px-3 py-1.5 text-xs font-bold rounded-md shadow-sm bg-gray-100 text-gray-900 focus:outline-none transition-all" data-val="4">4秒</button>
+                             <button type="button" class="dur-btn px-3 py-1.5 text-xs font-medium rounded-md text-gray-500 hover:text-gray-900 focus:outline-none transition-all" data-val="6">6秒</button>
+                             <button type="button" class="dur-btn px-3 py-1.5 text-xs font-medium rounded-md text-gray-500 hover:text-gray-900 focus:outline-none transition-all" data-val="8">8秒</button>
+                         </div>
+                    </div>
+
+                    <!-- Similar Generation -->
+                    <div class="flex items-center space-x-3 border-l border-gray-200 pl-6 ml-auto">
+                        <label for="toggle-seed" class="flex items-center cursor-pointer group">
+                            <div class="relative">
+                                <input type="checkbox" id="toggle-seed" class="sr-only">
+                                <div class="w-10 h-5 bg-gray-200 rounded-full shadow-inner transition-colors duration-200 ease-in-out toggle-bg group-hover:bg-gray-300"></div>
+                                <div class="dot absolute w-3 h-3 bg-white rounded-full shadow left-1 top-1 transition-transform duration-200 ease-in-out"></div>
+                            </div>
+                            <div class="ml-2 text-sm text-gray-700 select-none">
+                                <span class="font-medium">類似結果生成</span>
+                                <span class="text-xs text-gray-500 block">構図を固定 (Seed固定)</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Prompt Input -->
+                <div class="mb-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">プロンプト (シナリオ)</label>
+                    <textarea id="prompt" rows="4" 
+                        class="w-full rounded-xl border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-base p-4 border transition-all resize-none bg-gray-50 focus:bg-white" 
+                        placeholder="例: 夕暮れのビーチで楽しそうに踊る女性、シネマティックな照明、4k品質"></textarea>
+                    
+                    <div class="mt-2 flex justify-end">
+                        <button id="btn-enhance" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-primary bg-primary/10 hover:bg-primary/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            AIで具体化する
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 3: Generate & Preview -->
+            <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center mb-6">
+                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold mr-3">3</div>
+                    <h2 class="text-lg font-semibold text-gray-900">生成とプレビュー</h2>
+                </div>
+
+                <button id="btn-generate" class="w-full group relative flex justify-center items-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-lg font-bold text-white bg-primary hover:bg-primaryHover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5 mb-8">
                     <span class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        <svg class="w-6 h-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        動画を生成する
+                        プロモーション動画を生成する
                     </span>
                 </button>
 
                 <!-- Status Area -->
-                <div id="status-area" class="mt-6 hidden" aria-live="polite">
+                <div id="status-area" class="mb-6 hidden" aria-live="polite">
                     <div class="flex items-center p-4 rounded-xl bg-blue-50 text-blue-700 text-sm border border-blue-100 shadow-sm">
                         <div class="spinner mr-3 flex-shrink-0" id="loading-spinner"></div>
                         <div class="flex flex-col">
@@ -148,21 +329,72 @@
                         </div>
                     </div>
                 </div>
-            </section>
 
-            <!-- Preview Card -->
-            <section class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h2 class="text-base font-semibold text-gray-900">プレビュー</h2>
-                    <button id="btn-copy" class="text-xs font-medium text-primary hover:text-primaryHover transition-colors hidden focus:outline-none focus:underline">URLをコピー</button>
-                </div>
-                <div class="p-0 bg-gray-900 aspect-video flex items-center justify-center relative group overflow-hidden">
-                    <video id="video" class="w-full h-full object-contain" controls crossorigin="anonymous" playsinline></video>
-                    <div id="video-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-400 flex-col bg-gray-50/5">
-                        <span class="text-sm font-medium text-gray-500">生成結果がここに表示されます</span>
+                <!-- Preview Card -->
+                <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-100/50">
+                        <h2 class="text-sm font-semibold text-gray-900">プレビュー</h2>
+                        <button id="btn-copy" class="text-xs font-medium text-primary hover:text-primaryHover transition-colors hidden focus:outline-none focus:underline">URLをコピー</button>
+                    </div>
+                    <div class="p-0 bg-gray-900 aspect-video flex items-center justify-center relative group overflow-hidden">
+                        <video id="video" class="w-full h-full object-contain" controls crossorigin="anonymous" playsinline></video>
+                        <div id="video-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-400 flex-col bg-gray-50/5">
+                            <span class="text-sm font-medium text-gray-500">生成結果がここに表示されます</span>
+                        </div>
                     </div>
                 </div>
             </section>
+            </div><!-- End Normal Mode Container -->
+
+            <!-- Bulk Mode Container -->
+            <div id="bulk-mode-container" class="hidden">
+                <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold mr-3">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                        </div>
+                        <h2 class="text-lg font-semibold text-gray-900">一括生成 (AG Grid)</h2>
+                    </div>
+                    
+                    <div class="mb-4 text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <p class="font-bold mb-1">💡 使い方:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>ExcelやGoogle Sheetsからデータをコピー＆ペーストできます。</li>
+                            <li>「Prompt」は必須項目です。</li>
+                            <li>右クリックで行の追加・削除ができます。</li>
+                        </ul>
+                    </div>
+
+                    <!-- Spreadsheet Container -->
+                    <div id="myGrid" class="ag-theme-alpine w-full h-[500px] rounded-lg border border-gray-200"></div>
+
+                    <div class="mt-6 flex justify-end">
+                        <button id="btn-bulk-generate" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl shadow-sm text-white bg-primary hover:bg-primaryHover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all">
+                            <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                            一括生成を実行する
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- History Section -->
+            <section class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center mb-4">
+                    <h2 class="text-lg font-semibold text-gray-900">生成履歴</h2>
+                    <span class="ml-2 px-2 py-0.5 rounded-full bg-gray-100 text-xs text-gray-600" id="history-count">0</span>
+                </div>
+                <div id="history-list" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- History Items will be injected here -->
+                    <div id="history-empty" class="col-span-full text-center py-8 text-gray-400 text-sm">
+                        履歴はまだありません
+                    </div>
+                </div>
+            </section>
+
         </div>
     </main>
 
@@ -176,6 +408,14 @@
 
     <script>
         let currentMode = null;
+        let currentResolution = '720p';
+        let currentAspect = '16:9';
+        let currentDuration = 4;
+        let uploadedImageBase64 = null;
+        
+        // History Storage
+        let videoHistory = [];
+
         const promptEl = document.getElementById('prompt');
         const btnGenerate = document.getElementById('btn-generate');
         const statusArea = document.getElementById('status-area');
@@ -185,21 +425,367 @@
         const btnCopy = document.getElementById('btn-copy');
 
         const btnEnhance = document.getElementById('btn-enhance');
+        const modeDescArea = document.getElementById('mode-description');
+        const modeDescText = document.getElementById('mode-desc-text');
+        
+        // History Elements
+        const historyList = document.getElementById('history-list');
+        const historyCount = document.getElementById('history-count');
+        const historyEmpty = document.getElementById('history-empty');
+
+        // Image Upload Elements
+        const fileInput = document.getElementById('file-upload');
+        const dropZone = document.getElementById('drop-zone');
+        const imagePreview = document.getElementById('image-preview');
+        const removeImageBtn = document.getElementById('remove-image');
+        
+        // Tab Logic
+        function switchTab(tab) {
+            const normalContainer = document.getElementById('normal-mode-container');
+            const bulkContainer = document.getElementById('bulk-mode-container');
+            const tabNormal = document.getElementById('tab-normal');
+            const tabBulk = document.getElementById('tab-bulk');
+
+            if (tab === 'normal') {
+                normalContainer.classList.remove('hidden');
+                bulkContainer.classList.add('hidden');
+                
+                tabNormal.classList.add('bg-white', 'text-gray-900', 'font-bold', 'shadow-sm');
+                tabNormal.classList.remove('text-gray-500', 'font-medium');
+                
+                tabBulk.classList.remove('bg-white', 'text-gray-900', 'font-bold', 'shadow-sm');
+                tabBulk.classList.add('text-gray-500', 'font-medium');
+            } else {
+                normalContainer.classList.add('hidden');
+                bulkContainer.classList.remove('hidden');
+                
+                tabBulk.classList.add('bg-white', 'text-gray-900', 'font-bold', 'shadow-sm');
+                tabBulk.classList.remove('text-gray-500', 'font-medium');
+                
+                tabNormal.classList.remove('bg-white', 'text-gray-900', 'font-bold', 'shadow-sm');
+                tabNormal.classList.add('text-gray-500', 'font-medium');
+                
+                // Refresh grid layout if needed
+                if (gridApi) {
+                    setTimeout(() => gridApi.sizeColumnsToFit(), 100);
+                }
+            }
+        }
+
+        // AG Grid Initialization
+        let gridApi = null;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridOptions = {
+                columnDefs: [
+                    { field: "prompt", headerName: "Prompt (Required)", flex: 3, editable: true, cellEditor: 'agLargeTextCellEditor' },
+                    { field: "negative", headerName: "Negative Prompt", flex: 2, editable: true },
+                    { 
+                        field: "aspect", 
+                        headerName: "Aspect Ratio", 
+                        width: 120, 
+                        editable: true,
+                        cellEditor: 'agSelectCellEditor',
+                        cellEditorParams: {
+                            values: ['16:9', '9:16', '1:1', '4:3', '3:4']
+                        }
+                    },
+                    { 
+                        field: "resolution", 
+                        headerName: "Resolution", 
+                        width: 120, 
+                        editable: true,
+                        cellEditor: 'agSelectCellEditor',
+                        cellEditorParams: {
+                            values: ['720p', '1080p']
+                        }
+                    }
+                ],
+                defaultColDef: {
+                    resizable: true,
+                    sortable: false,
+                    filter: false
+                },
+                rowData: [
+                    { prompt: '', negative: '', aspect: '16:9', resolution: '720p' },
+                    { prompt: '', negative: '', aspect: '16:9', resolution: '720p' },
+                    { prompt: '', negative: '', aspect: '16:9', resolution: '720p' },
+                    { prompt: '', negative: '', aspect: '16:9', resolution: '720p' },
+                    { prompt: '', negative: '', aspect: '16:9', resolution: '720p' }
+                ],
+                singleClickEdit: true,
+                stopEditingWhenCellsLoseFocus: true,
+                enterMovesDown: true,
+                enterMovesDownAfterEdit: true,
+                getContextMenuItems: (params) => {
+                    return [
+                        'copy',
+                        'paste',
+                        'separator',
+                        {
+                            name: 'Add Row',
+                            action: () => {
+                                gridApi.applyTransaction({ add: [{ prompt: '', negative: '', aspect: '16:9', resolution: '720p' }] });
+                            }
+                        },
+                        {
+                            name: 'Delete Row',
+                            action: () => {
+                                const selectedData = gridApi.getSelectedRows();
+                                if (selectedData.length > 0) {
+                                    gridApi.applyTransaction({ remove: selectedData });
+                                } else if (params.node) {
+                                    gridApi.applyTransaction({ remove: [params.node.data] });
+                                }
+                            }
+                        }
+                    ];
+                },
+                rowSelection: 'multiple',
+                onGridReady: (params) => {
+                    gridApi = params.api;
+                }
+            };
+            
+            const eGridDiv = document.querySelector('#myGrid');
+            new agGrid.Grid(eGridDiv, gridOptions);
+        });
+
+        // Bulk Generate Logic
+        document.getElementById('btn-bulk-generate').addEventListener('click', async () => {
+            if (!gridApi) return;
+            
+            const validRequests = [];
+            
+            // Sanitize & Validate
+            const sanitize = (str) => {
+                if (!str) return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            };
+
+            gridApi.forEachNode((node, index) => {
+                const data = node.data;
+                let prompt = data.prompt;
+                let negative = data.negative;
+                let aspect = data.aspect || '16:9';
+                let resolution = data.resolution || '720p';
+
+                if (prompt && prompt.trim() !== '') {
+                    // Check for formula injection attempt (start with =)
+                    if (String(prompt).startsWith('=')) prompt = "'" + prompt; 
+                    if (String(negative).startsWith('=')) negative = "'" + negative;
+
+                    validRequests.push({
+                        id: index,
+                        prompt: sanitize(prompt),
+                        negative_prompt: sanitize(negative),
+                        aspect_ratio: aspect,
+                        resolution: resolution
+                    });
+                }
+            });
+
+            if (validRequests.length === 0) {
+                showToast('有効なデータがありません。Promptを入力してください。', 'error');
+                return;
+            }
+
+            console.log('Bulk Requests:', validRequests);
+            showToast(`${validRequests.length}件の動画生成キューを作成しました (デモ)`, 'success');
+        });
+
+        const modeDescriptions = {
+            influencer: "<strong>インフルエンサーモード:</strong> 架空のAIインフルエンサーが商品やサービスを魅力的に紹介する動画を作成します。人物の一貫性を保ちながら、自然な表情や仕草で視聴者にアピールします。",
+            lipsync: "<strong>リップシンクモード:</strong> アップロードした音声データやテキストに合わせて、キャラクターの口の動き（リップシンク）を完全に同期させます。ナレーション動画や解説動画に最適です。",
+            pose: "<strong>ポーズ制御モード:</strong> 特定のポーズやダンス、動きの軌跡を指定して、キャラクターを精密に動かします。ダンス動画やアクションシーンの再現に適しています。"
+        };
+        
+        // History Functions
+        function addToHistory(url, prompt, mode) {
+            const item = {
+                id: Date.now(),
+                url: url,
+                prompt: prompt,
+                mode: mode,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            videoHistory.unshift(item); // Add to top
+            renderHistory();
+        }
+
+        function renderHistory() {
+            if (videoHistory.length === 0) {
+                historyEmpty.classList.remove('hidden');
+                historyCount.textContent = '0';
+                return;
+            }
+
+            historyEmpty.classList.add('hidden');
+            historyCount.textContent = videoHistory.length;
+            
+            // Re-render list (simplified for demo)
+            historyList.innerHTML = '';
+            videoHistory.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'group relative aspect-video bg-gray-100 rounded-lg overflow-hidden cursor-pointer border border-gray-200 hover:ring-2 hover:ring-primary transition-all';
+                div.onclick = () => {
+                    videoEl.src = item.url;
+                    videoPlaceholder.classList.add('hidden');
+                    btnCopy.classList.remove('hidden');
+                    videoEl.play();
+                    // Scroll to preview
+                    videoEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+
+                div.innerHTML = `
+                    <video src="${item.url}" class="w-full h-full object-cover pointer-events-none"></video>
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2 text-white text-xs">
+                        <span class="font-bold truncate">${item.mode}</span>
+                        <span class="truncate opacity-80">${item.timestamp}</span>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-white/90 rounded-full p-1 opacity-0 group-hover:opacity-100 text-primary shadow-sm">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" /></svg>
+                    </div>
+                `;
+                historyList.appendChild(div);
+            });
+        }
+
+        // Image Upload Logic
+        function handleFile(file) {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedImageBase64 = e.target.result;
+                    imagePreview.src = uploadedImageBase64;
+                    imagePreview.classList.remove('hidden');
+                    removeImageBtn.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showToast('画像ファイルを選択してください', 'error');
+            }
+        }
+
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-primary', 'bg-primary/5');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary', 'bg-primary/5');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary', 'bg-primary/5');
+            if (e.dataTransfer.files.length) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        removeImageBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            uploadedImageBase64 = null;
+            imagePreview.src = '';
+            imagePreview.classList.add('hidden');
+            removeImageBtn.classList.add('hidden');
+            fileInput.value = '';
+        });
+
+        // Options Elements
+        const aspectMenuBtn = document.getElementById('aspect-menu-btn');
+        const aspectMenu = document.getElementById('aspect-menu');
+        const aspectSelected = document.getElementById('aspect-selected');
+        const aspectOptions = document.querySelectorAll('.aspect-option');
+        const resBtns = document.querySelectorAll('.res-btn');
+        const durBtns = document.querySelectorAll('.dur-btn');
+        const toggleSeed = document.getElementById('toggle-seed');
+
+        // Aspect Ratio Dropdown Logic
+        aspectMenuBtn.addEventListener('click', () => {
+            const expanded = aspectMenuBtn.getAttribute('aria-expanded') === 'true';
+            aspectMenuBtn.setAttribute('aria-expanded', !expanded);
+            aspectMenu.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!aspectMenuBtn.contains(e.target) && !aspectMenu.contains(e.target)) {
+                aspectMenu.classList.add('hidden');
+                aspectMenuBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        aspectOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                currentAspect = opt.dataset.val;
+                // Update button text and icon
+                const iconClass = opt.querySelector('span').className;
+                aspectSelected.innerHTML = `<span class="${iconClass} mr-2"></span>${currentAspect}`;
+                
+                // Highlight selected
+                aspectOptions.forEach(o => {
+                    o.classList.remove('bg-gray-50', 'font-medium');
+                });
+                opt.classList.add('bg-gray-50', 'font-medium');
+                
+                aspectMenu.classList.add('hidden');
+                aspectMenuBtn.setAttribute('aria-expanded', 'false');
+            });
+        });
+
+        // Resolution Logic
+        resBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentResolution = btn.dataset.val;
+                resBtns.forEach(b => {
+                    b.classList.remove('bg-gray-100', 'text-gray-900', 'shadow-sm', 'font-bold');
+                    b.classList.add('text-gray-500', 'hover:text-gray-900', 'font-medium');
+                });
+                btn.classList.add('bg-gray-100', 'text-gray-900', 'shadow-sm', 'font-bold');
+                btn.classList.remove('text-gray-500', 'hover:text-gray-900', 'font-medium');
+            });
+        });
+
+        // Duration Logic
+        durBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentDuration = parseInt(btn.dataset.val);
+                durBtns.forEach(b => {
+                    b.classList.remove('bg-gray-100', 'text-gray-900', 'shadow-sm', 'font-bold');
+                    b.classList.add('text-gray-500', 'hover:text-gray-900', 'font-medium');
+                });
+                btn.classList.add('bg-gray-100', 'text-gray-900', 'shadow-sm', 'font-bold');
+                btn.classList.remove('text-gray-500', 'hover:text-gray-900', 'font-medium');
+            });
+        });
 
         function selectMode(mode) {
             currentMode = mode;
             document.querySelectorAll('.mode-btn').forEach(btn => {
                 const isSelected = btn.dataset.mode === mode;
                 if (isSelected) {
-                    btn.classList.add('border-primary', 'bg-primary/5');
-                    btn.classList.remove('border-gray-200');
+                    btn.classList.add('border-primary', 'bg-primary/5', 'ring-1', 'ring-primary');
+                    btn.classList.remove('border-2', 'bg-white', 'hover:bg-gray-50');
                     btn.querySelector('.check-icon').classList.remove('hidden');
                 } else {
-                    btn.classList.remove('border-primary', 'bg-primary/5');
-                    btn.classList.add('border-gray-200');
+                    btn.classList.remove('border-primary', 'bg-primary/5', 'ring-1', 'ring-primary');
+                    btn.classList.add('border-2', 'bg-white', 'hover:bg-gray-50');
                     btn.querySelector('.check-icon').classList.add('hidden');
                 }
             });
+            
+            // Show description
+            modeDescText.innerHTML = modeDescriptions[mode];
+            modeDescArea.classList.remove('hidden');
         }
 
         function showToast(msg, type = 'info') {
@@ -253,6 +839,9 @@
             if (!prompt) return showToast('プロンプトを入力してください', 'error');
             if (!currentMode) return showToast('モードを選択してください', 'error');
 
+            const imageUsageEl = document.querySelector('input[name="image-usage"]:checked');
+            const imageUsage = imageUsageEl ? imageUsageEl.value : 'character';
+
             btnGenerate.disabled = true;
             btnGenerate.classList.add('opacity-75');
             statusArea.classList.remove('hidden');
@@ -263,7 +852,15 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         mode: currentMode,
-                        payload: { prompt: prompt }
+                        payload: { 
+                            prompt: prompt,
+                            aspect_ratio: currentAspect,
+                            resolution: currentResolution,
+                            duration: currentDuration,
+                            seed_fixed: toggleSeed.checked,
+                            image_data: uploadedImageBase64,
+                            image_usage: imageUsage
+                        }
                     })
                 });
                 const data = await res.json();
@@ -273,6 +870,10 @@
                     videoEl.src = data.result;
                     videoPlaceholder.classList.add('hidden');
                     btnCopy.classList.remove('hidden');
+                    
+                    // Add to history
+                    addToHistory(data.result, prompt, currentMode);
+                    
                 } else {
                     throw new Error(data.error || 'Unknown error');
                 }
